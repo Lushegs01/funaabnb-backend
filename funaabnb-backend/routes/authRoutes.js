@@ -5,8 +5,7 @@ const auth = require('../middleware/auth');
 const { uploadAvatar } = require('../middleware/upload');
 const {
   register, login, verifyEmail, refreshToken,
-  getMe, updateProfile, changePassword,
-  forgotPassword, resetPassword, toggleSaveListing,
+  getMe, updateProfile, changePassword, googleLogin, forgotPassword, resetPassword, toggleSaveListing,
 } = require('../controllers/authController');
 
 // Validation rules

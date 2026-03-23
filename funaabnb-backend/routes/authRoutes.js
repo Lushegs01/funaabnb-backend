@@ -27,10 +27,14 @@ const loginValidation = [
 // Public routes
 router.post('/register', registerValidation, register);
 router.post('/login', loginValidation, login);
+router.post('/google', googleLogin); // <-- Catch the Google request here!
 router.get('/verify-email/:token', verifyEmail);
 router.post('/refresh-token', refreshToken);
 router.post('/forgot-password', forgotPassword);
 router.patch('/reset-password/:token', resetPassword);
+
+// Protected routes (DO NOT put the google route below this line)
+router.use(auth.protect);
 
 // Protected routes
 router.use(auth.protect);

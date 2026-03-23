@@ -30,7 +30,7 @@ app.use(
   cors({
     origin: [
       process.env.CLIENT_URL || 'http://localhost:3000',
-      // Add your deployed frontend URL here
+      'https://funaabnb-frontend.vercel.app' // Added your live Vercel URL
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],

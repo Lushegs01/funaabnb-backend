@@ -146,7 +146,6 @@ listingSchema.index({ type: 1 });
 listingSchema.index({ price: 1 });
 listingSchema.index({ status: 1 });
 listingSchema.index({ landlord: 1 });
-listingSchema.index({ slug: 1 });
 listingSchema.index(
   { title: 'text', 'location.address': 'text', 'location.area': 'text' },
   { name: 'search_index' }

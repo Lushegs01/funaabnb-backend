@@ -5,7 +5,6 @@ const User = require('../models/User');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../utils/email');
 
 const { OAuth2Client } = require('google-auth-library');
-const jwt = require('jsonwebtoken'); // Assuming you use jsonwebtoken
 
 // Initialize the Google Client
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);

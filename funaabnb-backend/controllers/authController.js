@@ -3,9 +3,7 @@ const crypto = require('crypto');
 const { validationResult } = require('express-validator');
 const User = require('../models/User');
 const { sendVerificationEmail, sendPasswordResetEmail } = require('../utils/email');
-
 const { OAuth2Client } = require('google-auth-library');
-const jwt = require('jsonwebtoken'); // Assuming you use jsonwebtoken
 
 // Initialize the Google Client
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -34,24 +32,22 @@ exports.googleLogin = async (req, res, next) => {
     if (!user) {
       user = await User.create({
         firstName: given_name,
-        lastName: family_name || '', // Google sometimes omits family_name
+        lastName: family_name || '',
         email: email,
-        isVerified: true, // Google emails are pre-verified!
+        isVerified: true,
         userType: 'student',
-        authProvider: 'google', // Defaulting to 'student' for FunSpace
-        // avatar: { url: picture } // Uncomment if your schema stores profile pictures
+        authProvider: 'google',
       });
     }
 
-    // 4. Generate your standard FunSpace Access Token
-    // Note: If you have a custom token generation function in your app, use that here instead!
+    // 4. Generate Access Token
     const accessToken = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET,
       { expiresIn: '30d' }
     );
 
-    // 5. Send the token and user data back to the Vercel frontend
+    // 5. Send the token and user data back to the frontend
     res.status(200).json({
       success: true,
       accessToken,
@@ -83,7 +79,6 @@ const sendTokens = (user, statusCode, res) => {
   const accessToken = signAccessToken(user._id);
   const refreshToken = signRefreshToken(user._id);
 
-  // Attach response
   res.status(statusCode).json({
     success: true,
     accessToken,
@@ -103,15 +98,13 @@ exports.register = async (req, res, next) => {
 
     const { firstName, lastName, email, phone, password, userType, school } = req.body;
 
-    // Check duplicate email
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ success: false, message: 'Email already registered.' });
     }
 
-    // Generate email verification token
     const verificationToken = crypto.randomBytes(32).toString('hex');
-    const verificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24h
+    const verificationExpires = Date.now() + 24 * 60 * 60 * 1000;
 
     const user = await User.create({
       firstName,
@@ -125,7 +118,6 @@ exports.register = async (req, res, next) => {
       emailVerificationExpires: verificationExpires,
     });
 
-    // Send verification email (non-blocking)
     try {
       await sendVerificationEmail(user, verificationToken);
     } catch (emailErr) {
@@ -175,13 +167,11 @@ exports.login = async (req, res, next) => {
 
     const { email, password } = req.body;
 
-    // Find user with password field
     const user = await User.findOne({ email }).select('+password');
     if (!user || !user.password) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
     }
 
-    // Check password
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
       return res.status(401).json({ success: false, message: 'Invalid email or password.' });
@@ -191,7 +181,6 @@ exports.login = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Account has been deactivated. Contact support.' });
     }
 
-    // Update last login
     user.lastLogin = Date.now();
     await user.save({ validateBeforeSave: false });
 
@@ -250,7 +239,6 @@ exports.updateProfile = async (req, res, next) => {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
     });
 
-    // Handle avatar upload
     if (req.file) {
       updates['avatar.url'] = req.file.path;
       updates['avatar.publicId'] = req.file.filename;
@@ -294,14 +282,13 @@ exports.forgotPassword = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.body.email });
 
-    // Always return success to prevent email enumeration
     if (!user) {
       return res.json({ success: true, message: 'If that email exists, a reset link has been sent.' });
     }
 
     const resetToken = crypto.randomBytes(32).toString('hex');
     user.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-    user.passwordResetExpires = Date.now() + 60 * 60 * 1000; // 1 hour
+    user.passwordResetExpires = Date.now() + 60 * 60 * 1000;
     await user.save({ validateBeforeSave: false });
 
     try {

@@ -30,17 +30,22 @@ app.use(helmet());
 app.use(
   cors({
     origin: [
-      process.env.CLIENT_URL,
-      'http://localhost:3000',
-      'http://localhost:5500',     // <-- Added for Live Server
-      'http://127.0.0.1:5500',     // <-- Added for Live Server (IP version)
-      'https://funaabnb-frontend.vercel.app' 
-    ].filter(Boolean), // Removes undefined values if CLIENT_URL isn't set
+      'https://funaabnb-frontend.vercel.app', // Your live frontend
+      'http://localhost:3000',               // Local React development
+      'http://127.0.0.1:5500',               // VS Code Live Server
+      'http://localhost:5500'                // VS Code Live Server (alternate)
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
-);// Rate limiting — 100 requests per 15 minutes per IP
+);
+
+// Add this immediately after the app.use(cors(...)) line
+// This handles the "preflight" requests mentioned in your error log
+app.options('*', cors());
+
+// Rate limiting — 100 requests per 15 minutes per IP
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
